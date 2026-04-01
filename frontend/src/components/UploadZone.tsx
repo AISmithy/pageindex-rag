@@ -147,7 +147,7 @@ export default function UploadZone({ onFile, onSample }: UploadZoneProps) {
           onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.color = '#fbbf24')}
           onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.color = '#D97706')}
         >
-          Load sample KYC document
+          Load sample document
         </button>
       </div>
     </main>

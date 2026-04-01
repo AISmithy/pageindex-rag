@@ -54,8 +54,10 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
+        "http://localhost:5174",
         "http://localhost:4173",
         "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -77,16 +79,22 @@ async def ingest(req: IngestRequest):
     Accepts raw extracted text from the frontend, builds the PageIndex tree,
     persists it to SQLite, and returns the tree + metadata.
     """
+    logger.info(
+        "Ingest request: filename=%r  text_len=%d  first_120=%r",
+        req.filename,
+        len(req.text),
+        req.text[:120],
+    )
     if not req.text.strip():
         raise HTTPException(status_code=400, detail="Document text is empty.")
 
     tree = build_tree(req.text, req.filename)
 
+    # After fallback sectioning, if we still have nothing the document is unusable
     if not tree.sections:
         raise HTTPException(
             status_code=422,
-            detail="Could not detect any sections in this document. "
-            "Ensure it uses numbered headings (e.g. '1. Introduction').",
+            detail="Could not extract any content from this document.",
         )
 
     doc_id = await save_document(req.filename, tree)

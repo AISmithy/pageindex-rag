@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useRef, useState } from 'react'
 import { Citation, DocumentTree, Message, UploadState } from './types'
 import HeaderBar from './components/HeaderBar'
 import UploadZone from './components/UploadZone'
@@ -31,7 +31,24 @@ async function extractPdfText(file: File): Promise<string> {
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i)
     const content = await page.getTextContent()
-    pageTexts.push(content.items.map((item: { str: string }) => item.str).join(' '))
+
+    // Use Y-position to detect line breaks between text items.
+    // Items sharing the same Y coordinate are on the same line;
+    // a change in Y means a new line. This preserves heading structure
+    // so the tree builder's heading-detection regex can match.
+    const items = content.items as Array<{ str: string; transform: number[] }>
+    let lastY: number | null = null
+    let pageText = ''
+    for (const item of items) {
+      if (!item.str) continue
+      const y = item.transform[5]
+      if (lastY !== null && Math.abs(y - lastY) > 2) {
+        pageText += '\n'
+      }
+      pageText += item.str
+      lastY = y
+    }
+    pageTexts.push(pageText)
   }
 
   return pageTexts.join('\n')
@@ -55,6 +72,8 @@ export default function App() {
   const [highlighted, setHighlighted] = useState<Set<string>>(new Set())
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [ingestError, setIngestError] = useState<string | null>(null)
+  // Guard against double-clicks / duplicate submissions
+  const ingesting = useRef(false)
 
   // ── Progress simulation ────────────────────────────────────────────────────
   const runProgressSteps = useCallback(async () => {
@@ -68,6 +87,8 @@ export default function App() {
   // ── Ingest pipeline ────────────────────────────────────────────────────────
   const ingestDocument = useCallback(
     async (filename: string, text: string) => {
+      if (ingesting.current) return
+      ingesting.current = true
       setUploadState('processing')
       setIngestError(null)
 
@@ -91,6 +112,7 @@ export default function App() {
         const message = err instanceof Error ? err.message : 'Unknown error during ingestion.'
         setIngestError(message)
         setUploadState('idle')
+        ingesting.current = false
         return
       }
 
@@ -111,6 +133,7 @@ export default function App() {
         const message = err instanceof Error ? err.message : 'Session error.'
         setIngestError(message)
         setUploadState('idle')
+        ingesting.current = false
         return
       }
 
@@ -119,6 +142,7 @@ export default function App() {
       setDoc(data.tree)
       setSessionId(sessionData.session_id)
       setUploadState('ready')
+      ingesting.current = false
     },
     [runProgressSteps],
   )
@@ -252,6 +276,7 @@ export default function App() {
 
   // ── Reset ──────────────────────────────────────────────────────────────────
   const handleReset = useCallback(() => {
+    ingesting.current = false
     setDoc(null)
     setUploadState('idle')
     setProgress(0)
