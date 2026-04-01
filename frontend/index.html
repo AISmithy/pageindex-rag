@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PageIndex — Vectorless RAG</title>
+    <meta name="description" content="Document intelligence chatbot using structured LLM navigation. No vectors, no embeddings — just precise section retrieval." />
+    <!-- pdf.js v3.11.174 — in-browser PDF text extraction -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+      /* Minimal reset before React/Tailwind loads */
+      *, *::before, *::after { box-sizing: border-box; }
+      body { margin: 0; background: #07111C; color: #e2e8f0; }
+      #root { min-height: 100vh; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
