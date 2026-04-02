@@ -1,29 +1,46 @@
-import React, { useEffect, useRef } from 'react'
-import { Message } from '../types'
+import React, { useEffect, useMemo, useRef } from 'react'
+import { DocumentTree, Message } from '../types'
 import MessageBubble from './MessageBubble'
 import InputBar from './InputBar'
 
 interface ChatPanelProps {
   messages: Message[]
   thinking: boolean
+  tree: DocumentTree | null
   onQuestion: (question: string) => void
   onCitationClick: (id: string) => void
 }
 
-const STARTER_QUESTIONS = [
-  'What is the customer risk profile?',
-  'What PEP and sanctions checks were performed?',
-  'Describe the source of wealth and income.',
-  'What are the account details and expected turnover?',
-]
+function buildStarterQuestions(tree: DocumentTree | null): string[] {
+  if (!tree || !tree.sections.length) return []
+
+  const titles: string[] = []
+  for (const s of tree.sections) {
+    titles.push(s.title)
+    for (const c of s.children) {
+      titles.push(c.title)
+    }
+  }
+
+  // Pick up to 4 well-spaced sections to generate questions from
+  const step = Math.max(1, Math.floor(titles.length / 4))
+  const picked: string[] = []
+  for (let i = 0; i < titles.length && picked.length < 4; i += step) {
+    picked.push(titles[i])
+  }
+
+  return picked.map(t => `What does the document say about ${t}?`)
+}
 
 export default function ChatPanel({
   messages,
   thinking,
+  tree,
   onQuestion,
   onCitationClick,
 }: ChatPanelProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
+  const starterQuestions = useMemo(() => buildStarterQuestions(tree), [tree])
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -85,7 +102,7 @@ export default function ChatPanel({
       {messages.length === 0 && (
         <div className="px-6 pb-2">
           <div className="flex flex-wrap gap-2 mb-3">
-            {STARTER_QUESTIONS.map(q => (
+            {starterQuestions.map(q => (
               <button
                 key={q}
                 onClick={() => onQuestion(q)}

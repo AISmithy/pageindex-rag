@@ -331,6 +331,7 @@ export default function App() {
           <ChatPanel
             messages={messages}
             thinking={thinking}
+            tree={doc}
             onQuestion={handleQuestion}
             onCitationClick={handleCitationClick}
           />

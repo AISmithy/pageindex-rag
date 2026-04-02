@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C c:/GIT-REPO/pageindex-rag log --oneline)",
+      "Bash(git -C c:/GIT-REPO/pageindex-rag config user.email)",
+      "Bash(git -C c:/GIT-REPO/pageindex-rag config user.name)",
+      "Bash(.venv/Scripts/pip install:*)",
+      "Bash(npm install:*)",
+      "Bash(.venv/Scripts/uvicorn main:app --port 8000 --reload)",
+      "Bash(echo \"Backend PID: $!\")",
+      "Bash(npm run:*)",
+      "Bash(echo \"Frontend PID: $!\")",
+      "Bash(curl -s http://localhost:8000/health)",
+      "Bash(curl -s -o /dev/null -w \"Frontend HTTP: %{http_code}\" http://localhost:5173)",
+      "Bash(curl -s -o /dev/null -w \"Backend: %{http_code}\\\\n\" http://localhost:8000/health)",
+      "Bash(curl -s -o /dev/null -w \"Frontend: %{http_code}\\\\n\" http://localhost:5173)",
+      "Bash(curl -s -X POST http://localhost:8000/ingest -H 'Content-Type: application/json' -d '{\"filename\":\"test.txt\",\"text\":\"1. Introduction\\\\n\\\\nThis is test content.\\\\n\\\\n1.1 Background\\\\n\\\\nBackground text here.\"}')",
+      "Bash(python -m json.tool)",
+      "Bash(.venv/Scripts/python -c \"from pipeline import run_pipeline, build_graph; print\\('pipeline OK'\\); g = build_graph\\(\\); print\\('graph OK:', g\\)\")",
+      "Bash(curl -s -X POST http://localhost:8000/ingest -H 'Content-Type: application/json' -d '{\"filename\":\"test.txt\",\"text\":null}')",
+      "Bash(curl -s -X POST http://localhost:8000/ingest -H 'Content-Type: application/json' -d '{\"filename\":\"test.txt\"}')",
+      "Bash(.venv/Scripts/python -c ':*)",
+      "Bash(curl -s http://localhost:5173/src/sample-doc.ts)",
+      "Bash(curl -s \"http://localhost:5173/src/sample-doc.ts\")"
+    ]
+  }
+}
